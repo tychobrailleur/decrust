@@ -123,7 +123,7 @@ class Application {
 	}
 }
 
-int main(string args[]) {
+public static int main(string[] args) {
 	var application = new Application();
 	var fileTree = new FileTree();
 	int fileCount = application.grokDir(".", fileTree);
