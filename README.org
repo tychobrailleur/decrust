@@ -1,3 +1,15 @@
+Decrust is a command-line tool that searches for duplicate files in
+the current directory.  It is written in Vala, and is inspired by
+[[https://github.com/adrianlopezroche/fdupes][fdupes]].
+
+* Build
+
+To compile, run:
+
+#+BEGIN_SRC bash
+make
+#+END_SRC
+
 * License
 
   Copyright (c) 2018 Sébastien Le Callonnec.  Licensed under GPLv3.
