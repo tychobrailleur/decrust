@@ -19,24 +19,54 @@ class Application {
 		if (fileTree.file == null) {
 			fileTree.file = f;
 		}
-		else if (f.hash > fileTree.file.hash) {
+
+		else if (f.size > fileTree.file.size) {
 			if (fileTree.right == null) {
 				fileTree.right = new FileTree();
 			}
 			addToTree(f, fileTree.right);
-		} else if (f.hash < fileTree.file.hash) {
+		} else if (f.size < fileTree.file.size) {
 			if (fileTree.left == null) {
 				fileTree.left = new FileTree();
 			}
 			addToTree(f, fileTree.left);
 		} else {
-			// Same hash, we found a duplicate.
-			var existingFile = fileTree.file;
-			File tmp = existingFile.next;
-			f.next = tmp;
-			existingFile.hasDuplicates = true;
-			existingFile.next = f;
+			// Same size, need to compare hash
+			if (fileTree.file.hash == null) {
+				fileTree.file.hash = computeHash(fileTree.file.path);
+			}
+			f.hash = computeHash(f.path);
+			if (f.hash > fileTree.file.hash) {
+				if (fileTree.right == null) {
+					fileTree.right = new FileTree();
+				}
+				addToTree(f, fileTree.right);
+			} else if (f.hash < fileTree.file.hash) {
+				if (fileTree.left == null) {
+					fileTree.left = new FileTree();
+				}
+				addToTree(f, fileTree.left);
+			} else {
+				// Same hash, we found a duplicate.
+				var existingFile = fileTree.file;
+				File tmp = existingFile.next;
+				f.next = tmp;
+				existingFile.hasDuplicates = true;
+				existingFile.next = f;
+			}
 		}
+	}
+
+	private string computeHash(string path) {
+		try {
+			uint8[] file_contents;
+			FileUtils.get_data(path, out file_contents);
+			string digest = GLib.Checksum.compute_for_data(ChecksumType.MD5, file_contents);
+			return digest;
+	   	} catch (GLib.Error err) {
+			stderr.printf(err.message);
+		}
+		return "";
 	}
 
 	public int grokDir(string dir, FileTree fileTree) {
@@ -53,11 +83,6 @@ class Application {
 
 					var file = GLib.File.new_for_path(path);
 					var file_info = file.query_info("*", FileQueryInfoFlags.NONE);
-
-					uint8[] file_contents;
-					FileUtils.get_data(path, out file_contents);
-					string digest = GLib.Checksum.compute_for_data(ChecksumType.MD5, file_contents);
-					f.hash = digest;
 					f.size = file_info.get_size();
 
 					// stdout.printf("File: %lld\n" , f.size);
